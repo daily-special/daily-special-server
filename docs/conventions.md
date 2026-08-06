@@ -31,6 +31,10 @@ public record VisitState(int hunger, int condition, int mood, int wallet) { ... 
 public class VisitState { @Id Long id; ... }
 ```
 
+**이 규칙은 ArchUnit이 강제한다** (`LayerRulesTest`). 파이프라인은 import-linter가, 클라이언트는 어셈블리 정의가 같은 선을 긋는다. 규약에 적어두기만 하면 언젠가 깨지고, 깨진 뒤에 떼는 것은 비싸다.
+
+예외 하나를 둔다: **읽기 전용 조회**는 도메인 모델을 거치지 않고 DTO로 바로 뽑는다. 규칙이 없는 길에 매퍼를 놓는 것은 순수 낭비다.
+
 **도메인 규칙과 JPA 엔티티를 같은 클래스로 쓰지 않는다.** 붙여두면 규칙을 검증하려고 컨테이너를 띄우게 되고, 스키마를 바꾸려면 규칙을 건드리게 된다. 나중에 떼는 건 비싸고, 지금 나누는 건 공짜다.
 
 ## 2. 스키마는 Flyway가 소유한다
