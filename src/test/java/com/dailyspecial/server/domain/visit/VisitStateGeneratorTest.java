@@ -41,7 +41,7 @@ class VisitStateGeneratorTest {
 			Mood mood,
 			int wallet) {
 		VisitState state =
-				generator.generate(new VisitSeed(saveId, dayNumber, guestId), new GuestTraits(prefersAffordable));
+				generator.generate(new VisitSeed(saveId, dayNumber, guestId), traitsFor(prefersAffordable));
 
 		assertEquals(new VisitState(hunger, condition, mood, wallet), state);
 	}
@@ -50,7 +50,7 @@ class VisitStateGeneratorTest {
 	@DisplayName("같은 씨앗이면 몇 번을 물어도 같은 상태가 나온다")
 	void isDeterministic() {
 		VisitSeed seed = new VisitSeed("save-1", 3, "guest_mira");
-		GuestTraits traits = new GuestTraits(false);
+		GuestTraits traits = GuestTraits.of();
 
 		VisitState first = generator.generate(seed, traits);
 		for (int i = 0; i < 100; i++) {
@@ -65,8 +65,8 @@ class VisitStateGeneratorTest {
 		for (int day = 1; day <= 50; day++) {
 			VisitSeed seed = new VisitSeed("save-1", day, "guest_rolf");
 
-			VisitState plain = generator.generate(seed, new GuestTraits(false));
-			VisitState thrifty = generator.generate(seed, new GuestTraits(true));
+			VisitState plain = generator.generate(seed, GuestTraits.of());
+			VisitState thrifty = generator.generate(seed, GuestTraits.of(Need.AFFORDABLE));
 
 			assertEquals(plain.hunger(), thrifty.hunger(), day + "일차 허기");
 			assertEquals(plain.condition(), thrifty.condition(), day + "일차 컨디션");
@@ -80,7 +80,7 @@ class VisitStateGeneratorTest {
 		VisitNumbers numbers = VisitNumbers.defaults();
 
 		for (int day = 1; day <= 2_000; day++) {
-			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), new GuestTraits(false));
+			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), GuestTraits.of());
 
 			assertTrue(
 					state.hunger() >= numbers.hungerMin() && state.hunger() <= numbers.hungerMax(),
@@ -97,7 +97,7 @@ class VisitStateGeneratorTest {
 		int ceiling = VisitNumbers.defaults().affordableWalletMax();
 
 		for (int day = 1; day <= 2_000; day++) {
-			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), new GuestTraits(true));
+			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), GuestTraits.of(Need.AFFORDABLE));
 
 			assertTrue(state.wallet() <= ceiling, "저렴 성향인데 지갑이 " + state.wallet() + "이다");
 		}
@@ -111,7 +111,7 @@ class VisitStateGeneratorTest {
 		Map<Mood, Integer> moods = new EnumMap<>(Mood.class);
 
 		for (int day = 1; day <= samples; day++) {
-			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), new GuestTraits(false));
+			VisitState state = generator.generate(new VisitSeed("save-1", day, "guest_rolf"), GuestTraits.of());
 
 			conditions.merge(state.condition(), 1, Integer::sum);
 			moods.merge(state.mood(), 1, Integer::sum);
@@ -131,10 +131,15 @@ class VisitStateGeneratorTest {
 	void rejectsMissingArguments() {
 		assertThrows(IllegalArgumentException.class, () -> new VisitStateGenerator(null));
 		assertThrows(
-				IllegalArgumentException.class, () -> generator.generate(null, new GuestTraits(false)));
+				IllegalArgumentException.class, () -> generator.generate(null, GuestTraits.of()));
 		assertThrows(
 				IllegalArgumentException.class,
 				() -> generator.generate(new VisitSeed("save-1", 1, "guest_rolf"), null));
+	}
+
+	/** 고정 벡터 표가 boolean을 주므로 여기서 성향으로 옮긴다. */
+	private static GuestTraits traitsFor(boolean prefersAffordable) {
+		return prefersAffordable ? GuestTraits.of(Need.AFFORDABLE) : GuestTraits.of();
 	}
 
 	private static <T extends Enum<T>> void assertShare(

@@ -3,6 +3,8 @@ package com.dailyspecial.server.application.visit;
 import com.dailyspecial.server.application.port.GuestCatalog;
 import com.dailyspecial.server.domain.visit.GuestTraits;
 import com.dailyspecial.server.domain.visit.VisitSeed;
+import com.dailyspecial.server.domain.visit.NeedResolver;
+import com.dailyspecial.server.domain.visit.TodayVisit;
 import com.dailyspecial.server.domain.visit.VisitState;
 import com.dailyspecial.server.domain.visit.VisitStateGenerator;
 import org.springframework.stereotype.Service;
@@ -18,16 +20,20 @@ public class VisitStateQuery {
 
 	private final GuestCatalog guests;
 	private final VisitStateGenerator generator;
+	private final NeedResolver needs;
 
-	public VisitStateQuery(GuestCatalog guests, VisitStateGenerator generator) {
+	public VisitStateQuery(GuestCatalog guests, VisitStateGenerator generator, NeedResolver needs) {
 		this.guests = guests;
 		this.generator = generator;
+		this.needs = needs;
 	}
 
-	public VisitState today(VisitSeed seed) {
+	public TodayVisit today(VisitSeed seed) {
 		GuestTraits traits =
 				guests.findTraits(seed.guestId()).orElseThrow(() -> new UnknownGuestException(seed.guestId()));
 
-		return generator.generate(seed, traits);
+		VisitState state = generator.generate(seed, traits);
+
+		return new TodayVisit(state, needs.resolve(state, traits));
 	}
 }

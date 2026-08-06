@@ -12,7 +12,10 @@ import com.dailyspecial.server.application.visit.UnknownGuestException;
 import com.dailyspecial.server.application.visit.VisitStateQuery;
 import com.dailyspecial.server.domain.visit.Condition;
 import com.dailyspecial.server.domain.visit.Mood;
+import com.dailyspecial.server.domain.visit.Need;
+import com.dailyspecial.server.domain.visit.TodayVisit;
 import com.dailyspecial.server.domain.visit.VisitState;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +42,11 @@ class VisitStateControllerTest {
 	@Test
 	@DisplayName("키는 snake_case, 열거 값은 소문자로 나간다")
 	void speaksTheContractVocabulary() throws Exception {
-		given(query.today(any())).willReturn(new VisitState(71, Condition.TIRED, Mood.ELATED, 24));
+		given(query.today(any()))
+				.willReturn(
+						new TodayVisit(
+								new VisitState(71, Condition.TIRED, Mood.ELATED, 24),
+								List.of(Need.RESTORATIVE, Need.MILD)));
 
 		mockMvc
 				.perform(get(PATH))
@@ -53,7 +60,10 @@ class VisitStateControllerTest {
 				.andExpect(jsonPath("$.wallet").value(24))
 				// 자바 enum 이름(TIRED·ELATED)이 새어 나오면 안 된다
 				.andExpect(jsonPath("$.condition").value("tired"))
-				.andExpect(jsonPath("$.mood").value("elated"));
+				.andExpect(jsonPath("$.mood").value("elated"))
+				// 욕구도 계약 어휘로 나간다
+				.andExpect(jsonPath("$.needs[0]").value("restorative"))
+				.andExpect(jsonPath("$.needs[1]").value("mild"));
 	}
 
 	@Test

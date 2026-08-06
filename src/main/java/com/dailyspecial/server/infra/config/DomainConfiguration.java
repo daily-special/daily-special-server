@@ -1,5 +1,7 @@
 package com.dailyspecial.server.infra.config;
 
+import com.dailyspecial.server.domain.visit.NeedNumbers;
+import com.dailyspecial.server.domain.visit.NeedResolver;
 import com.dailyspecial.server.domain.visit.VisitNumbers;
 import com.dailyspecial.server.domain.visit.VisitStateGenerator;
 import org.springframework.context.annotation.Bean;
@@ -22,5 +24,15 @@ class DomainConfiguration {
 	@Bean
 	VisitStateGenerator visitStateGenerator(VisitNumbers visitNumbers) {
 		return new VisitStateGenerator(visitNumbers);
+	}
+
+	@Bean
+	NeedNumbers needNumbers() {
+		return NeedNumbers.defaults();
+	}
+
+	@Bean
+	NeedResolver needResolver(NeedNumbers needNumbers) {
+		return new NeedResolver(needNumbers);
 	}
 }
