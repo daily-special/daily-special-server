@@ -2,6 +2,9 @@ package com.dailyspecial.server.infra.content;
 
 import com.dailyspecial.server.application.port.GuestCatalog;
 import com.dailyspecial.server.domain.visit.GuestTraits;
+import com.dailyspecial.server.domain.visit.Need;
+import java.util.EnumSet;
+import java.util.Set;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -33,9 +36,6 @@ public class JsonGuestCatalog implements GuestCatalog {
 
 	private static final int SUPPORTED_MAJOR = 1;
 	private static final String EXPECTED_KIND = "guests";
-
-	/** 선호 욕구에 이 값이 있으면 지갑이 빠듯한 손님이다 (데이터 계약 7절). */
-	private static final String AFFORDABLE = "affordable";
 
 	private final Map<String, GuestTraits> traitsById;
 
@@ -70,20 +70,31 @@ public class JsonGuestCatalog implements GuestCatalog {
 			if (guestId == null || guestId.isBlank()) {
 				throw new IllegalStateException(RESOURCE_PATH + ": guest_id가 없는 항목이 있다");
 			}
-			if (traits.put(guestId, new GuestTraits(prefersAffordable(item))) != null) {
+			if (traits.put(guestId, new GuestTraits(preferredNeeds(item, guestId))) != null) {
 				throw new IllegalStateException(RESOURCE_PATH + ": guest_id가 겹친다 — " + guestId);
 			}
 		}
 		return Map.copyOf(traits);
 	}
 
-	private static boolean prefersAffordable(JsonNode item) {
-		for (JsonNode need : item.path("preferred_needs")) {
-			if (AFFORDABLE.equals(need.stringValue(null))) {
-				return true;
+	/**
+	 * 선호 욕구를 어휘로 옮긴다. <b>모르는 값이면 기동을 막는다.</b>
+	 *
+	 * <p>schema_version과 같은 규칙이다. 계약에 욕구가 늘었는데 서버가 모르면, 조용히
+	 * 무시할 경우 그 손님만 욕구가 어긋난 채 굴러간다 — 한참 뒤에 발견된다.
+	 */
+	private static Set<Need> preferredNeeds(JsonNode item, String guestId) {
+		Set<Need> needs = EnumSet.noneOf(Need.class);
+		for (JsonNode node : item.path("preferred_needs")) {
+			String slug = node.stringValue(null);
+			try {
+				needs.add(Need.fromSlug(slug));
+			} catch (IllegalArgumentException cause) {
+				throw new IllegalStateException(
+						"%s: %s의 선호 욕구를 모른다 — %s".formatted(RESOURCE_PATH, guestId, slug), cause);
 			}
 		}
-		return false;
+		return needs;
 	}
 
 	private static void checkKind(JsonNode root) {

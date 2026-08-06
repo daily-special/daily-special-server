@@ -2,8 +2,11 @@ package com.dailyspecial.server.api.visit;
 
 import com.dailyspecial.server.domain.visit.Condition;
 import com.dailyspecial.server.domain.visit.Mood;
+import com.dailyspecial.server.domain.visit.Need;
+import com.dailyspecial.server.domain.visit.TodayVisit;
 import com.dailyspecial.server.domain.visit.VisitSeed;
 import com.dailyspecial.server.domain.visit.VisitState;
+import java.util.List;
 
 /**
  * 오늘 손님 상태 응답.
@@ -24,9 +27,12 @@ public record VisitStateResponse(
 		int hunger,
 		String condition,
 		String mood,
-		int wallet) {
+		int wallet,
+		List<String> needs) {
 
-	public static VisitStateResponse of(VisitSeed seed, VisitState state) {
+	public static VisitStateResponse of(VisitSeed seed, TodayVisit visit) {
+		VisitState state = visit.state();
+
 		return new VisitStateResponse(
 				seed.saveId(),
 				seed.dayNumber(),
@@ -34,10 +40,17 @@ public record VisitStateResponse(
 				state.hunger(),
 				slug(state.condition()),
 				slug(state.mood()),
-				state.wallet());
+				state.wallet(),
+				visit.needs().stream().map(Need::slug).toList());
 	}
 
-	/** `default`를 두지 않는다 — 어휘가 늘면 컴파일이 깨져서 여기를 반드시 고치게 된다. */
+	/**
+	 * `default`를 두지 않는다 — 어휘가 늘면 컴파일이 깨져서 여기를 반드시 고치게 된다.
+	 *
+	 * <p>{@link Need}는 반대로 표기를 열거 안에 들고 있다. 욕구는 콘텐츠 JSON에서
+	 * <b>읽어 들이기도</b> 하므로 왕복이 필요하고, 표기가 두 곳에 있으면 그 왕복이 깨진다.
+	 * 컨디션·기분은 읽어 들일 일이 없어 이쪽 방식이 더 안전하다.
+	 */
 	private static String slug(Condition condition) {
 		return switch (condition) {
 			case NORMAL -> "normal";

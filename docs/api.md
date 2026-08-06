@@ -55,7 +55,8 @@ major가 바뀌면 경로가 바뀐다. 필드를 **더하는** 것은 major를 
   "hunger": 67,
   "condition": "normal",
   "mood": "elated",
-  "wallet": 24
+  "wallet": 24,
+  "needs": ["special", "filling"]
 }
 ```
 
@@ -65,6 +66,7 @@ major가 바뀌면 경로가 바뀐다. 필드를 **더하는** 것은 major를 
 | `condition` | string | `normal` · `injured` · `tired` |
 | `mood` | string | `gloomy` · `calm` · `elated` |
 | `wallet` | integer | 오늘 이 손님이 쓸 수 있는 돈 |
+| `needs` | string[] | 이번 방문의 **우선 욕구**. 1~2개, 중요한 순서다. `filling` · `restorative` · `mild` · `stimulating` · `affordable` · `special` |
 
 요청 식별자 셋을 **되돌려 담는다.** 응답만 보고도 무엇에 대한 답인지 알 수 있게 하려는 것이다.
 
@@ -95,7 +97,6 @@ major가 바뀌면 경로가 바뀐다. 필드를 **더하는** 것은 major를 
 
 ## 5. 아직 없는 것
 
-- **오늘의 욕구** — 상태에서 우선 욕구 1~2개를 뽑는 규칙이 미확정이다
 - **관계·공개된 취향 · 재고 · 소지금·평판 · 시장 시세** — 전부 서버 소유지만 아직 화면이 요구하지 않는다
 - **손님 여러 명을 한 번에** — 지금은 한 명씩. 하루 손님 목록이 생기면 묶는다
 - **인증** — 3절
