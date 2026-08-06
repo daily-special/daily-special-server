@@ -35,6 +35,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
+	// 계층 규칙을 사람이 아니라 도구가 지키게 한다 (docs/conventions.md 1절)
+	testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
