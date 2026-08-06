@@ -1,0 +1,29 @@
+# 개발용 Postgres. `./gradlew bootRun`이 이걸 자동으로 띄우고 datasource를 꽂는다
+# (spring-boot-docker-compose). 직접 띄우려면 `docker compose up -d`.
+#
+# 이미지 태그를 고정한다. `latest`로 두면 어느 날 메이저가 올라가 조용히 깨진다.
+# 이 태그는 TestcontainersConfiguration.java와 **같아야 한다** — 다르면 테스트가
+# 통과해도 실서버에서 깨진다.
+services:
+  postgres:
+    image: 'postgres:18-alpine'
+    environment:
+      - 'POSTGRES_DB=daily_special'
+      - 'POSTGRES_USER=daily_special'
+      - 'POSTGRES_PASSWORD=local_only'
+    ports:
+      # 호스트 5432에 고정한다. GUI 클라이언트나 psql로 붙어볼 때 포트를 찾지 않아도 된다
+      - '5432:5432'
+    volumes:
+      # Postgres 18+는 마운트를 /var/lib/postgresql에 건다. 17까지의 관례였던
+      # /var/lib/postgresql/data에 걸면 컨테이너가 기동을 거부한다
+      # (메이저별 하위 디렉터리를 써서 pg_upgrade가 되게 바뀌었다).
+      - 'daily-special-pgdata:/var/lib/postgresql'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U daily_special -d daily_special']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  daily-special-pgdata:

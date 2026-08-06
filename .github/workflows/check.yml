@@ -1,0 +1,40 @@
+name: check
+
+# Testcontainers가 진짜 Postgres를 띄운다. ubuntu-latest 러너에는 Docker가 있어서
+# 로컬과 같은 방식으로 돈다 (근거: docs/server-design.md 4-1절).
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 컨테이너 이미지 태그가 두 곳에서 같은지 확인
+        shell: bash
+        run: |
+          # 규약 6절. 어긋나면 테스트가 통과해도 실서버에서 깨진다.
+          compose=$(grep -oP "(?<=image: ')[^']+" compose.yaml)
+          tests=$(grep -oP '(?<=POSTGRES_IMAGE = ")[^"]+' \
+            src/test/java/com/dailyspecial/server/TestcontainersConfiguration.java)
+
+          echo "compose.yaml                  : ${compose}"
+          echo "TestcontainersConfiguration   : ${tests}"
+
+          if [ "${compose}" != "${tests}" ]; then
+            echo "::error::Postgres 이미지 태그가 어긋났습니다. 두 곳을 같이 올리세요."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 빌드와 테스트
+        run: ./gradlew build --console=plain
