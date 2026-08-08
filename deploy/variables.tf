@@ -11,9 +11,14 @@ variable "name" {
 }
 
 variable "instance_type" {
-  description = "EC2 인스턴스 타입. AL2023 arm64라 Graviton2 이상이어야 한다"
+  description = <<-EOT
+    EC2 인스턴스 타입.
+
+    **이미지를 빌드하는 머신과 아키텍처가 같아야 한다.** 지금은 x86_64다 —
+    amd64 이미지를 arm64 인스턴스에 올리면 컨테이너가 exec format error로 죽는다.
+  EOT
   type        = string
-  default     = "t4g.small"
+  default     = "t3.small"
 }
 
 variable "root_volume_size" {
