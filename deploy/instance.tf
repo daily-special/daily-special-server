@@ -1,8 +1,12 @@
 # 80과 22 말고는 들어올 길이 없다. 기본값은 **아무 데서도 못 들어온다** —
 # 실수로 열리는 것보다 실수로 닫히는 편이 낫다.
 resource "aws_security_group" "instance" {
-  name        = "${var.name}-instance"
-  description = "daily-special 서버"
+  name = "${var.name}-instance"
+
+  # AWS는 보안 그룹 설명에 **ASCII만** 받는다. 한국어를 넣으면
+  # `Character sets beyond ASCII are not supported`로 생성이 거부된다.
+  # 코드 주석은 한국어지만 AWS로 나가는 값은 영어로 쓴다.
+  description = "daily-special server"
   vpc_id      = data.aws_vpc.default.id
 }
 
@@ -31,7 +35,7 @@ resource "aws_vpc_security_group_ingress_rule" "ssh" {
 # 나가는 길은 열어야 한다 — ECR·SSM·패키지 저장소를 부른다.
 resource "aws_vpc_security_group_egress_rule" "all" {
   security_group_id = aws_security_group.instance.id
-  description       = "전부 허용"
+  description       = "All outbound"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
