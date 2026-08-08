@@ -1,5 +1,7 @@
 package com.dailyspecial.server.infra.config;
 
+import com.dailyspecial.server.domain.relationship.RelationshipNumbers;
+import com.dailyspecial.server.domain.relationship.RelationshipRules;
 import com.dailyspecial.server.domain.visit.NeedNumbers;
 import com.dailyspecial.server.domain.visit.NeedResolver;
 import com.dailyspecial.server.domain.visit.VisitNumbers;
@@ -34,5 +36,15 @@ class DomainConfiguration {
 	@Bean
 	NeedResolver needResolver(NeedNumbers needNumbers) {
 		return new NeedResolver(needNumbers);
+	}
+
+	@Bean
+	RelationshipNumbers relationshipNumbers() {
+		return RelationshipNumbers.defaults();
+	}
+
+	@Bean
+	RelationshipRules relationshipRules(RelationshipNumbers relationshipNumbers) {
+		return new RelationshipRules(relationshipNumbers);
 	}
 }
