@@ -19,7 +19,10 @@ jobs:
         shell: bash
         run: |
           # 규약 6절. 어긋나면 테스트가 통과해도 실서버에서 깨진다.
-          compose=$(grep -oP "(?<=image: ')[^']+" compose.yaml)
+          #
+          # postgres 서비스의 이미지만 본다. compose에는 앱 이미지도 있어서
+          # 이미지 줄을 통째로 잡으면 둘이 잡힌다 — 실제로 한 번 이 검사를 깨뜨렸다.
+          compose=$(grep -oP "(?<=image: ')postgres:[^']+" compose.yaml)
           tests=$(grep -oP '(?<=POSTGRES_IMAGE = ")[^"]+' \
             src/test/java/com/dailyspecial/server/TestcontainersConfiguration.java)
 
