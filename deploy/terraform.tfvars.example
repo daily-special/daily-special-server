@@ -1,0 +1,19 @@
+# cp terraform.tfvars.example terraform.tfvars 한 뒤 채운다.
+# terraform.tfvars는 커밋되지 않는다.
+
+# 최소 16자. 짧으면 apply가 거부한다.
+api_key = "여기에-충분히-긴-임의-문자열"
+
+# 최소 12자.
+postgres_password = "여기에-비밀번호"
+
+# 기본은 아무 데서도 못 들어온다. 본인 IP만 여는 것을 권한다.
+#   curl -s ifconfig.me
+# allowed_api_cidrs = ["203.0.113.7/32"]
+#
+# 심사용으로 전체 공개가 필요하면 명시적으로 연다.
+# allowed_api_cidrs = ["0.0.0.0/0"]
+
+# SSH가 필요하면. 비워두면 22를 아예 열지 않는다.
+# allowed_ssh_cidrs = ["203.0.113.7/32"]
+# key_name          = "내-키페어-이름"

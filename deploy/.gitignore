@@ -1,0 +1,9 @@
+# 상태에 비밀이 평문으로 들어간다. 절대 커밋하지 않는다.
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# 실제 값. 예시 파일만 커밋한다.
+*.tfvars
+!*.tfvars.example
