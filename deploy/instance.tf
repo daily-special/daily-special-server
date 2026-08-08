@@ -37,7 +37,7 @@ resource "aws_vpc_security_group_egress_rule" "all" {
 }
 
 resource "aws_instance" "server" {
-  ami                  = data.aws_ssm_parameter.al2023_arm64.value
+  ami                  = data.aws_ssm_parameter.al2023.value
   instance_type        = var.instance_type
   subnet_id            = data.aws_subnets.default.ids[0]
   iam_instance_profile = aws_iam_instance_profile.instance.name

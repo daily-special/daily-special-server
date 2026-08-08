@@ -13,6 +13,16 @@ Fargate는 컨테이너가 언제든 사라지는 전제라 **Postgres를 거기
 
 **본선에는 Fargate로 옮긴다.** 그때는 백엔드 쇼케이스라 값을 하고, 여기서 만든 이미지·ECR·환경변수·헬스체크가 그대로 쓰인다.
 
+## ⚠️ 아키텍처를 맞춘다
+
+**이미지를 빌드하는 머신과 인스턴스의 아키텍처가 같아야 한다.** 지금은 둘 다 x86_64다.
+
+```bash
+docker image inspect <이미지> --format '{{.Architecture}}'   # amd64 여야 한다
+```
+
+어긋나면 인스턴스에서 컨테이너가 `exec format error`로 죽는다. Terraform은 이걸 못 잡아준다 — apply는 성공하고 서버만 안 뜬다.
+
 ## 준비물
 
 - AWS 자격증명 (`aws configure` 또는 환경변수)
