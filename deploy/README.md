@@ -41,7 +41,10 @@ terraform init
 terraform apply -target=aws_ecr_repository.app
 
 ECR=$(terraform output -raw ecr_repository_url)
-REGION=$(terraform output -raw region 2>/dev/null || echo ap-northeast-2)
+
+# `-target` apply 뒤에는 `terraform output -raw region`이 아직 없다.
+# 그 시점의 상태에는 대상 리소스에 딸린 출력만 들어 있다.
+REGION=$(aws configure get region)
 
 # 2. 이미지 빌드 후 밀어 넣기
 cd .. && ./gradlew bootBuildImage --imageName="$ECR:latest" && cd deploy
@@ -90,6 +93,16 @@ terraform apply -replace=aws_instance.server
 `api_key`와 `postgres_password`는 Parameter Store에 `SecureString`으로 들어가고, 인스턴스가 **자기 역할로 읽어간다.** user_data에는 값이 없다 — user_data는 메타데이터로 노출되고 콘솔에도 평문으로 보인다.
 
 **다만 값은 Terraform 상태 파일에 평문으로 남는다.** `*.tfstate`를 커밋하지 않는 것이 그래서 중요하다(`.gitignore`에 있다). 상태 파일은 비밀처럼 다룬다.
+
+## 걸려본 것들
+
+실제로 올리다 부딪힌 것을 남긴다.
+
+**보안 그룹 설명은 ASCII만 받는다.** 한국어를 넣으면 `Character sets beyond ASCII are not supported`로 생성이 거부된다. 코드 주석은 한국어지만 **AWS로 나가는 값은 영어로 쓴다.**
+
+**`-target` apply 뒤에는 일부 출력이 없다.** 그 시점 상태에는 대상 리소스에 딸린 것만 들어 있어서, `terraform output -raw region`이 실패한다. 위 순서에서 `aws configure get region`을 쓰는 이유다.
+
+**기동에 100초쯤 걸린다.** `terraform apply`가 끝나도 바로 200이 아니다 — user_data가 docker를 깔고 이미지를 당기고 Postgres 헬스체크를 기다린다. 조급해하지 말고 `/actuator/health`를 폴링한다.
 
 ## 아직 없는 것
 
